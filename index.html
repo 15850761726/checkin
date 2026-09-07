@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>王翊霖·晚间打卡小太阳</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    background:linear-gradient(160deg,#FFF8E1 0%,#FFE0B2 55%,#FFCC80 100%);
+    min-height:100vh;color:#4E342E;padding-bottom:60px;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:16px}
+
+  /* ===== 头部 ===== */
+  header{text-align:center;padding:20px 0 6px}
+  .logo{font-size:46px;display:inline-block;animation:floaty 3s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(255,152,0,.35))}
+  h1{font-size:22px;margin-top:6px;letter-spacing:1px;color:#5D4037}
+  .date{font-size:13px;color:#8D6E63;margin-top:4px}
+
+  /* ===== 卡片 ===== */
+  .card{background:#fff;border-radius:18px;box-shadow:0 6px 18px rgba(255,152,0,.18);padding:16px;margin:12px 0}
+  .card-title{font-size:16px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .card-title small{font-weight:400;color:#A1887F;font-size:12px;margin-left:auto}
+
+  /* ===== 钱包 ===== */
+  .wallet{background:linear-gradient(135deg,#FFB300,#FF8F00);border:none;color:#fff}
+  .wallet .card-title{color:#FFF8E1}
+  .wallet-main{display:flex;align-items:center;justify-content:space-around;margin:8px 0 12px}
+  .wp{text-align:center}
+  .wp .num{font-size:38px;font-weight:900;line-height:1.1;text-shadow:0 2px 4px rgba(0,0,0,.15)}
+  .wp .lab{font-size:12px;opacity:.9;margin-top:2px}
+  .bar{height:14px;background:rgba(255,255,255,.35);border-radius:10px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFF59D,#FFFFFF);border-radius:10px;transition:width .5s ease}
+  .progress-text{font-size:12px;text-align:center;margin-top:6px;color:#FFF8E1;font-weight:600}
+  .btn-exchange{
+    width:100%;margin-top:12px;padding:13px;border:none;border-radius:14px;
+    background:#fff;color:#E65100;font-size:16px;font-weight:800;cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,.15);transition:.2s;
+  }
+  .btn-exchange:active{transform:scale(.97)}
+  .btn-exchange:disabled{background:#F5E6C4;color:#BFA76B;cursor:not-allowed;box-shadow:none}
+
+  /* ===== 任务列表 ===== */
+  .task{
+    display:flex;align-items:center;gap:10px;
+    background:#FFFDF7;border:2px solid #F5E6C4;border-radius:14px;
+    padding:10px 12px;margin:8px 0;transition:all .2s;
+  }
+  .task.done{
+    border-color:#FFB300;background:linear-gradient(90deg,#FFF9E6,#FFF3CC);
+    box-shadow:0 2px 8px rgba(255,179,0,.25);
+  }
+  .task.nope{border-color:#CFD8DC;background:#F4F6F8;opacity:.85}
+  .task-icon{font-size:26px;flex-shrink:0}
+  .task-info{flex:1;min-width:0}
+  .task-name{font-size:16px;font-weight:700}
+  .task-time{font-size:12px;color:#8D6E63;margin-top:1px}
+  .task-adhd{font-size:11.5px;color:#A1887F;margin-top:2px;line-height:1.5}
+  .chip{font-size:11px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+  .chip-ok{background:#FFF3CD;color:#B07D00}
+  .chip-no{background:#FBE9E7;color:#C62828}
+  .chip-wait{background:#F5F5F5;color:#9E9E9E}
+  .actions{display:flex;gap:6px;flex-shrink:0}
+  .btn{
+    padding:8px 10px;border-radius:10px;border:2px solid transparent;
+    font-size:13px;font-weight:700;cursor:pointer;transition:.15s;line-height:1.2;
+  }
+  .btn-done{background:#FFF3CD;color:#8A5A00}
+  .btn-done.active{background:#FFB300;color:#fff;border-color:#FF8F00}
+  .btn-nope{background:#ECEFF1;color:#607D8B}
+  .btn-nope.active{background:#90A4AE;color:#fff;border-color:#78909C}
+  .btn:active{transform:scale(.94)}
+
+  /* ===== 今日小结 ===== */
+  .summary{display:flex;justify-content:space-around;text-align:center;background:#FFFDE7;border-radius:14px;padding:10px;border:1px dashed #FFD54F}
+  .summary .s-item .s-num{font-size:20px;font-weight:900}
+  .summary .s-item .s-lab{font-size:11px;color:#8D6E63}
+  .s-num.ok{color:#F9A825}.s-num.no{color:#E53935}.s-num.todo{color:#78909C}
+
+  /* ===== 记录 ===== */
+  .record-row{padding:9px 4px;border-bottom:1px dashed #F0E0C8;font-size:14px}
+  .record-row:last-child{border-bottom:none}
+  .rd-top{display:flex;align-items:center;gap:8px}
+  .record-row .rd-date{display:flex;flex-direction:column;width:86px;flex-shrink:0}
+  .rd-detail{margin-top:6px;padding-left:2px}
+  .rd-detail .rd-line{font-size:12.5px;line-height:1.7}
+  .rd-detail .ok-line{color:#F57F17}
+  .rd-detail .no-line{color:#90A4AE}
+  .rd-date b{font-size:14px}
+  .rd-date span{font-size:11px;color:#A1887F}
+  .rd-info{flex:1;color:#6D4C41;font-size:13px}
+  .rd-score{margin-left:auto;font-weight:900;font-size:14px;white-space:nowrap}
+  .rd-score.pos{color:#F9A825}.rd-score.neg{color:#E53935}.rd-score.zero{color:#B0BEC5}
+  .today-tag{background:#FFB300;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;font-weight:700;margin-left:4px}
+  .ex-row{display:flex;align-items:center;gap:8px;padding:9px 4px;border-bottom:1px dashed #F0E0C8;font-size:13px}
+  .ex-row:last-child{border-bottom:none}
+  .ex-time{color:#A1887F;width:86px;flex-shrink:0}
+  .ex-sun{color:#F57F17;font-weight:800;margin-left:auto}
+  .ex-coin{background:#FFF3CD;color:#B07D00;border-radius:10px;padding:2px 8px;font-weight:800}
+  .empty{text-align:center;color:#BCAAA4;font-size:13px;padding:18px 8px}
+
+  /* ===== 折叠参考 ===== */
+  details.card summary{cursor:pointer;font-weight:700;font-size:14px;color:#6D4C41;outline:none}
+  details.card summary::-webkit-details-marker{display:none}
+  details.card[open] summary{margin-bottom:10px}
+  .ref{font-size:13px;color:#5D4037;line-height:1.8}
+  .ref ol{padding-left:22px}
+  .ref .prio{background:#FFF8E1;border-left:4px solid #FFB300;padding:8px 10px;border-radius:8px;margin:8px 0}
+  .ref .praise{background:#E8F5E9;border-left:4px solid #66BB6A;padding:8px 10px;border-radius:8px;margin:8px 0}
+  .ref .praise li{list-style:none;margin-left:8px}
+  .ref .praise li::before{content:"⭐ "}
+
+  /* ===== 数据管理 ===== */
+  .danger-btn{
+    padding:8px 12px;border-radius:10px;border:1px solid #FFCDD2;background:#FFF3F2;color:#C62828;
+    font-size:13px;font-weight:700;cursor:pointer;margin:0 6px 6px 0;
+  }
+  .danger-btn:active{transform:scale(.96)}
+
+  /* ===== 动画 ===== */
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
+  .pop{animation:pop .45s ease}
+  .confetti-piece{position:fixed;top:-20px;width:10px;height:14px;border-radius:2px;pointer-events:none;z-index:9999;animation:fall 2s ease-in forwards}
+
+  /* ADHD 完成激励弹窗（10秒自动消失） */
+  .praise-mask{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center}
+  .praise-card{width:78%;max-width:420px;background:#FFFDF5;border-radius:24px;padding:30px 24px 22px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);animation:praisePop .4s ease}
+  @keyframes praisePop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
+  .praise-sun{font-size:64px;display:inline-block;animation:floaty 1.6s ease-in-out infinite}
+  .praise-title{font-size:24px;font-weight:900;color:#F57F17;margin:10px 0}
+  .praise-text{font-size:16px;color:#5D4037;line-height:1.7}
+  .praise-bonus{display:inline-block;margin-top:12px;background:#FFF3CD;color:#B07D00;border-radius:20px;padding:5px 16px;font-size:13px;font-weight:700}
+  .praise-close{margin-top:16px;background:#FFB300;color:#fff;font-size:15px;font-weight:800;border:none;border-radius:24px;padding:10px 0;width:100%;cursor:pointer}
+  .praise-auto{margin-top:10px;font-size:12px;color:#A1887F}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg) translateX(var(--drift));opacity:.85}}
+
+  .foot{margin-top:20px}
+  .foot + .foot{margin-top:8px}
+  .footnote{text-align:center;color:#A1887F;font-size:12px;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">☀️</div>
+    <h1>王翊霖的晚间打卡</h1>
+    <div class="date" id="todayDate"></div>
+  </header>
+
+  <!-- 小太阳钱包 -->
+  <div class="card wallet">
+    <div class="card-title">💰 小太阳钱包 <small>每 10 ☀️ = 1 元硬币</small></div>
+    <div class="wallet-main">
+      <div class="wp"><div class="num" id="balance">0</div><div class="lab">可用小太阳</div></div>
+      <div class="wp"><div class="num">🪙</div><div class="lab" id="coins">0 枚硬币</div></div>
+      <div class="wp"><div class="num" id="totalSuns">0</div><div class="lab">累计获得</div></div>
+    </div>
+    <div class="bar"><i id="progressBar"></i></div>
+    <div class="progress-text" id="progressText"></div>
+    <button class="btn-exchange" id="btnExchange">🪙 兑换 1 元硬币（-10 ☀️）</button>
+  </div>
+
+  <!-- 今日打卡 -->
+  <div class="card">
+    <div class="card-title">📋 今日打卡 <small>点击任务旁的按钮打卡</small></div>
+    <div id="taskList"></div>
+    <div class="summary" id="todaySummary"></div>
+  </div>
+
+  <!-- 兑换记录 -->
+  <div class="card">
+    <div class="card-title">🪙 兑换记录 <small>近半年</small></div>
+    <div id="exchangeList"></div>
+  </div>
+
+  <!-- 打卡日历 -->
+  <div class="card">
+    <div class="card-title">📅 打卡记录 <small>近半年</small></div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- 计划参考 -->
+  <details class="card">
+    <summary>📖 计划参考（排期 / 取舍优先级 / 表扬话术）</summary>
+    <div class="ref">
+      <b>晚间学习计划表（18:40 开始）</b>
+      <ol>
+        <li>18:40‑18:55 跳绳 15分钟｜大运动释放精力；适度出汗，避免过度疲惫</li>
+        <li>18:55‑19:00 休息 5分钟｜擦汗、喝水、平复呼吸</li>
+        <li>19:00‑19:20 数学补充题 20分钟｜脑力最高优先做；卡壳题目先标记跳过</li>
+        <li>19:20‑19:25 休息 5分钟｜起身走动、远眺，不玩玩具</li>
+        <li>19:25‑19:45 语文补充题 20分钟｜读题训练听觉注意；指令拆短句</li>
+        <li>19:45‑20:00 练字 15分钟｜少量出示字；多具体表扬；抵触缩至10分钟，闹钟响即停</li>
+        <li>20:00‑20:05 快乐小阅读 5分钟｜练字奖励，自选书，纯阅读不做题</li>
+        <li>20:05‑20:20 舒尔特方格 15分钟｜分2‑3组，不追求速度</li>
+        <li>20:20‑20:25 休息 5分钟｜活动肩颈手部</li>
+        <li>20:25‑20:40 英语阅读题 15分钟｜先听音频，训练听觉注意力</li>
+        <li>20:40‑20:50 安静看书 10分钟｜兴趣阅读收尾</li>
+      </ol>
+      <p style="margin-top:6px">结束：20:50，洗漱准备睡觉 🛁</p>
+      <div class="prio">
+        <b>【状态不好取舍优先级】</b><br>
+        数学补充题 ＞ 语文补充题 ＞ 英语阅读题 ＞ 练字 ＞ 舒尔特方格 ＞ 安静看书<br>
+        <span style="color:#8D6E63">快乐小阅读尽量保留；跳绳可缩短，不强制满15分钟</span>
+      </div>
+      <div class="praise">
+        <b>【练字表扬话术】</b>
+        <ul>
+          <li>这个字的竖写得很直！</li>
+          <li>刚刚这几分钟坐得很稳，专注度很好。</li>
+          <li>偏旁位置摆得很准，观察很仔细。</li>
+        </ul>
+      </div>
+      <div class="prio" style="margin-top:6px">
+        <b>🧠 ADHD 打卡小贴士</b>
+        <ul style="margin-top:4px">
+          <li>预告法：开始前先说清楚——“做完这项我们就休息/去玩”</li>
+          <li>缓冲法：结束前3分钟提醒——“还剩3分钟，我们要准备收尾啦”</li>
+          <li>小目标法：20分钟任务拆成两个10分钟，做会做的就停</li>
+          <li>抽离法：每项之间安排小仪式（伸懒腰/喝水），帮大脑切换</li>
+          <li>表扬过程：夸“专注了”“坐得稳”，比夸结果更有效</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <!-- 数据管理 -->
+  <details class="card">
+    <summary>⚙️ 数据管理</summary>
+    <div style="margin-top:10px">
+      <button class="danger-btn" id="btnResetToday">重置今日打卡</button>
+      <button class="danger-btn" id="btnClearAll">清空全部数据（含兑换记录）</button>
+      <p style="font-size:12px;color:#A1887F;margin-top:6px">数据保存在本浏览器中，清除浏览器缓存前请谨慎操作。</p>
+    </div>
+  </details>
+
+  <div class="footnote">每天坚持，小太阳会越来越多哦 🌞</div>
+</div>
+
+<!-- ADHD 完成激励弹窗：10 秒后自动消失，可点"收到"手动关闭 -->
+<div class="praise-mask" id="praiseMask" style="display:none">
+  <div class="praise-card">
+    <div class="praise-sun">☀️</div>
+    <div class="praise-title">太棒了！</div>
+    <div class="praise-text" id="praiseText"></div>
+    <div class="praise-bonus">小太阳 +1 ☀️ 已入账</div>
+    <button class="praise-close" id="praiseClose">收到，继续加油！</button>
+    <div class="praise-auto">⏳ <span id="praiseCount">10</span> 秒后自动消失</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ===== 任务定义 =====
+  var TASKS = [
+    {key:'rope',      icon:'🤸', name:'跳绳',        time:'18:40-18:55', dur:'15分钟', adhd:'分2-3段跳，累了随时停，不要求满15分钟'},
+    {key:'math',      icon:'🧮', name:'数学补充题',  time:'19:00-19:20', dur:'20分钟', adhd:'先做会做的，卡壳就跳过；做对1道就值得表扬'},
+    {key:'chinese',   icon:'📖', name:'语文补充题',  time:'19:25-19:45', dur:'20分钟', adhd:'指令拆成短句，一次只做一个要求'},
+    {key:'write',     icon:'✍️', name:'练字',        time:'19:45-20:00', dur:'15分钟', adhd:'一次只练2-3个字，写好了就停；抵触时缩到10分钟'},
+    {key:'happyRead', icon:'🎈', name:'快乐小阅读',  time:'20:00-20:05', dur:'5分钟',  adhd:'自选书，翻几页都算完成，纯阅读不做题'},
+    {key:'schulte',   icon:'🎯', name:'舒尔特方格',  time:'20:05-20:20', dur:'15分钟', adhd:'分2-3组做，不追求速度'},
+    {key:'english',   icon:'🎧', name:'英语阅读题',  time:'20:25-20:40', dur:'15分钟', adhd:'先听音频，听3遍就算完成，跟着读更棒'},
+    {key:'quietRead', icon:'📚', name:'安静看书',    time:'20:40-20:50', dur:'10分钟', adhd:'出声朗读也可以，翻几页都很棒'}
+  ];
+  var STORE_KEY = 'wyl_evening_sun_v1';
+
+  // ===== 存储 =====
+  function defaultStore(){ return {days:{}, coins:0, exchanges:[]}; }
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return defaultStore();
+      var s = JSON.parse(raw);
+      if(!s.days) s.days = {};
+      if(!s.exchanges) s.exchanges = [];
+      if(typeof s.coins !== 'number') s.coins = 0;
+      return s;
+    }catch(e){ return defaultStore(); }
+  }
+  var store = load();
+  function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }catch(e){} }
+
+  // ===== 工具 =====
+  function pad(n){ return n < 10 ? '0'+n : ''+n; }
+  function fmtDate(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function sixMonthsAgo(s){ // 以某日期往前推 6 个自然月（近半年滚动窗口起点）
+    var p = s.split('-');
+    var d = new Date(+p[0], +p[1]-1, +p[2]);
+    d.setMonth(d.getMonth()-6);
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  }
+  function todayKey(){ return fmtDate(new Date()); }
+  function getDay(key){ if(!store.days[key]) store.days[key] = {}; return store.days[key]; }
+  function daySuns(key){
+    var d = store.days[key] || {}, s = 0;
+    TASKS.forEach(function(t){
+      if(d[t.key] === 'done') s++;
+      else if(d[t.key] === 'notDone') s--;
+    });
+    return s;
+  }
+  function totalSuns(){
+    var s = 0;
+    Object.keys(store.days).forEach(function(k){ s += daySuns(k); });
+    return s;
+  }
+  function balance(){ return totalSuns() - store.coins * 10; }
+  function nowStr(){
+    var d = new Date();
+    return (d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+  function dateLabel(key){
+    var p = key.split('-');
+    var d = new Date(+p[0], +p[1]-1, +p[2]);
+    return (d.getMonth()+1)+'月'+d.getDate()+'日';
+  }
+  function weekLabel(key){
+    var p = key.split('-');
+    var d = new Date(+p[0], +p[1]-1, +p[2]);
+    return '周'+'日一二三四五六'[d.getDay()];
+  }
+
+  // ===== 渲染 =====
+  function renderTasks(){
+    var day = getDay(todayKey());
+    var el = document.getElementById('taskList');
+    el.innerHTML = TASKS.map(function(t){
+      var st = day[t.key] || 'none';
+      var cls = st === 'done' ? 'done' : (st === 'notDone' ? 'nope' : '');
+      var badge = st === 'done'
+        ? '<span class="chip chip-ok">完成 +1 ☀️</span>'
+        : (st === 'notDone'
+          ? '<span class="chip chip-no">未完成 -1 ☀️</span>'
+          : '<span class="chip chip-wait">待打卡</span>');
+      return '<div class="task '+cls+'" data-key="'+t.key+'">'
+        + '<div class="task-icon">'+t.icon+'</div>'
+        + '<div class="task-info"><div class="task-name">'+t.name+'</div>'
+        + '<div class="task-time">'+t.time+' · '+t.dur+'</div>'
+        + '<div class="task-adhd">🧠 '+t.adhd+'</div></div>'
+        + badge
+        + '<div class="actions">'
+        + '<button class="btn btn-done '+(st==='done'?'active':'')+'" data-act="done" data-key="'+t.key+'">✅ 完成</button>'
+        + '<button class="btn btn-nope '+(st==='notDone'?'active':'')+'" data-act="notDone" data-key="'+t.key+'">❌ 未完成</button>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  function renderTodaySummary(){
+    var day = getDay(todayKey());
+    var done = 0, notDone = 0;
+    TASKS.forEach(function(t){
+      if(day[t.key] === 'done') done++;
+      else if(day[t.key] === 'notDone') notDone++;
+    });
+    var todo = TASKS.length - done - notDone;
+    var s = done - notDone;
+    var el = document.getElementById('todaySummary');
+    el.innerHTML =
+      '<div class="s-item"><div class="s-num ok">'+done+'</div><div class="s-lab">完成</div></div>'
+      + '<div class="s-item"><div class="s-num no">'+notDone+'</div><div class="s-lab">未完成</div></div>'
+      + '<div class="s-item"><div class="s-num todo">'+todo+'</div><div class="s-lab">待打卡</div></div>'
+      + '<div class="s-item"><div class="s-num '+(s>=0?'ok':'no')+'">'+(s>=0?'+':'')+s+' ☀️</div><div class="s-lab">今日小太阳</div></div>';
+  }
+
+  function renderWallet(){
+    var b = balance(), t = totalSuns(), c = store.coins;
+    var balEl = document.getElementById('balance');
+    balEl.textContent = Math.max(0,b);
+    document.getElementById('coins').textContent = c + ' 枚硬币';
+    document.getElementById('totalSuns').textContent = t;
+    var rem = b % 10;
+    if(rem < 0) rem = 0;
+    document.getElementById('progressBar').style.width = (rem*10)+'%';
+    var need = 10 - rem;
+    var pt = document.getElementById('progressText');
+    if(b >= 10){
+      pt.textContent = '🎉 已够 10 个！可以兑换啦（可兑 '+Math.floor(b/10)+' 枚）';
+    }else if(b < 0){
+      pt.textContent = '😅 小太阳暂时不足，认真打卡就能攒回来！';
+      document.getElementById('progressBar').style.width = '0%';
+    }else{
+      pt.textContent = '再得 '+need+' 个小太阳就能兑换 1 元硬币啦';
+    }
+    var btn = document.getElementById('btnExchange');
+    btn.disabled = b < 10;
+    btn.textContent = b >= 10 ? '🪙 兑换 1 元硬币（-10 ☀️，可兑 '+Math.floor(b/10)+' 枚）' : '🪙 还差 '+(10-Math.max(b,0))+' 个☀️才能兑换';
+    balEl.classList.remove('pop'); void balEl.offsetWidth; balEl.classList.add('pop');
+  }
+
+  function renderExchanges(){
+    var el = document.getElementById('exchangeList');
+    // 近半年滚动：只展示近 6 个月内的兑换记录（早期记录没有 date 字段时保留显示）
+    var cutoff = sixMonthsAgo(todayKey());
+    var list = store.exchanges.filter(function(x){ return !x.date || x.date >= cutoff; });
+    if(!list.length){
+      el.innerHTML = '<div class="empty">近半年还没有兑换记录～<br>攒够 10 个小太阳就可以兑换 1 元硬币啦 🪙</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(x){
+      return '<div class="ex-row"><span class="ex-time">'+x.time+'</span>'
+        + '<span>消耗 ☀️</span><span class="ex-sun">-10 ☀️</span>'
+        + '<span class="ex-coin">+1 🪙</span></div>';
+    }).join('');
+  }
+
+  function renderHistory(){
+    var tk = todayKey();
+    // 有记录的日子按日期倒序
+    var cutoff = sixMonthsAgo(tk); // 近半年滚动窗口起点
+    var keys = Object.keys(store.days).filter(function(k){
+      return k.length === 10 && k >= cutoff && Object.keys(store.days[k] || {}).length > 0;
+    }).sort().reverse();
+    if(keys.indexOf(tk) === -1) keys.unshift(tk);
+    keys = keys.slice(0, 186); // 半年约183天
+
+    var el = document.getElementById('historyList');
+    if(!keys.length){
+      el.innerHTML = '<div class="empty">今天还没有打卡哦，加油！</div>';
+      return;
+    }
+    el.innerHTML = keys.map(function(k){
+      var d = store.days[k] || {};
+      var done = 0, notDone = 0;
+      var doneNames = [], notDoneNames = []; // 记录当天完成/未完成的具体内容
+      TASKS.forEach(function(t){
+        if(d[t.key] === 'done'){ done++; doneNames.push(t.name); }
+        else if(d[t.key] === 'notDone'){ notDone++; notDoneNames.push(t.name); }
+      });
+      if(!done && !notDone) return '';
+      var s = done - notDone;
+      var sCls = s > 0 ? 'pos' : (s < 0 ? 'neg' : 'zero');
+      var sTxt = (s > 0 ? '+' : '') + s + ' ☀️';
+      var tag = (k === tk) ? '<span class="today-tag">今天</span>' : '';
+      var dn = doneNames.join('、') || '—';
+      var nn = notDoneNames.join('、') || '—';
+      return '<div class="record-row">'
+        + '<div class="rd-top">'
+        + '<div class="rd-date"><b>'+dateLabel(k)+'</b><span>'+weekLabel(k)+'</span></div>'
+        + '<div class="rd-info">完成 '+done+' / '+TASKS.length+' 项</div>'
+        + tag
+        + '<div class="rd-score '+sCls+'">'+sTxt+'</div>'
+        + '</div>'
+        + '<div class="rd-detail">'
+        + '<div class="rd-line ok-line">✅ 完成：'+dn+'</div>'
+        + '<div class="rd-line no-line">❌ 未完成：'+nn+'</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderAll(){
+    renderTasks();
+    renderTodaySummary();
+    renderWallet();
+    renderExchanges();
+    renderHistory();
+  }
+
+  // ===== 交互 =====
+  document.getElementById('taskList').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-act]');
+    if(!btn) return;
+    var key = btn.dataset.key, act = btn.dataset.act;
+    var day = getDay(todayKey());
+    var prev = day[key];             // 记录旧状态用于弹窗判断
+    if(prev === act){
+      delete day[key];               // 再次点击同一按钮 = 撤销
+    } else {
+      day[key] = act;                // 直接切换状态（完成↔未完成）
+    }
+    save();
+    renderAll();
+    // 【ADHD 激励】点"完成"时弹出表扬弹窗（10秒后自动消失），并预告下一项，帮助抽离切换
+    if(day[key] === 'done'){
+      var t = null, i;
+      for(i = 0; i < TASKS.length; i++){ if(TASKS[i].key === key){ t = TASKS[i]; break; } }
+      var nextName = TASKS[i+1] ? TASKS[i+1].name : '安静休息';
+      if(t) showPraise(t.name, nextName);
+    }
+  });
+
+  document.getElementById('btnExchange').addEventListener('click', function(){
+    var b = balance();
+    if(b < 10) return;
+    var n = Math.floor(b / 10);
+    var msg = '确定用 10 个小太阳兑换 1 元硬币吗？\n兑换后剩余 '+(b-10)+' 个小太阳。';
+    if(n > 1) msg = '当前可兑换 '+n+' 枚硬币，每次兑换 1 枚。\n' + msg;
+    if(!confirm(msg)) return;
+    store.coins += 1;
+    store.exchanges.unshift({time: nowStr(), date: todayKey(), suns: -10, coin: 1});
+    save();
+    renderAll();
+    confetti();
+  });
+
+  document.getElementById('btnResetToday').addEventListener('click', function(){
+    var k = todayKey();
+    var d = store.days[k];
+    if(!d || !Object.keys(d).length){
+      alert('今日还没有打卡记录，无需重置。');
+      return;
+    }
+    if(!confirm('确定重置今日 ['+dateLabel(k)+' '+weekLabel(k)+'] 的全部打卡吗？\n今日获得的小太阳也一并取消。')) return;
+    delete store.days[k];
+    save();
+    renderAll();
+  });
+
+  document.getElementById('btnClearAll').addEventListener('click', function(){
+    if(!confirm('确定清空全部数据吗？\n包括所有打卡记录、小太阳和兑换记录！')) return;
+    if(!confirm('再次确认：此操作不可恢复，真的要全部清空吗？')) return;
+    store = defaultStore();
+    save();
+    renderAll();
+  });
+
+  // ===== ADHD 完成激励弹窗（10秒后自动消失） =====
+  var PRAISE = [
+    '「{name}」完成啦！你专注的样子真棒，小太阳送给你 ☀️',
+    '哇！「{name}」顺利完成！坚持做完一件事就是最大的进步！',
+    '厉害！「{name}」拿下！先伸个懒腰、喝口水，缓一缓～',
+    '「{name}」get！做得很稳，妈妈/爸爸看到你的专注啦！',
+    '漂亮！「{name}」完成！休息一下，下一项是「{next}」，准备好再开始～'
+  ];
+  var praiseTimer = null, praiseCountTimer = null;
+  function showPraise(name, next){
+    var tpl = PRAISE[Math.floor(Math.random()*PRAISE.length)];
+    var text = tpl.replace('{name}', name).replace('{next}', next);
+    var txt = document.getElementById('praiseText');
+    if(txt) txt.textContent = text;
+    var mask = document.getElementById('praiseMask');
+    if(!mask) return;
+    mask.style.display = 'flex';
+    // 倒计时 10 秒，每秒更新剩余秒数
+    var left = 10, cnt = document.getElementById('praiseCount');
+    if(cnt) cnt.textContent = left;
+    clearInterval(praiseCountTimer); clearTimeout(praiseTimer);
+    praiseCountTimer = setInterval(function(){
+      left--;
+      var c2 = document.getElementById('praiseCount');
+      if(c2) c2.textContent = left > 0 ? left : 0;
+      if(left <= 0) clearInterval(praiseCountTimer);
+    }, 1000);
+    praiseTimer = setTimeout(closePraise, 10000); // ⏳ 10 秒后自动消失
+  }
+  function closePraise(){
+    var mask = document.getElementById('praiseMask');
+    if(mask) mask.style.display = 'none';
+    clearInterval(praiseCountTimer); clearTimeout(praiseTimer);
+  }
+
+  // ===== 庆祝彩带 =====
+  function confetti(){
+    var colors = ['#FFB300','#FF7043','#4FC3F7','#81C784','#BA68C8','#FFD54F','#EC407A'];
+    for(var i = 0; i < 90; i++){
+      (function(){
+        var el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = (Math.random()*100) + 'vw';
+        el.style.background = colors[Math.floor(Math.random()*colors.length)];
+        var size = 6 + Math.random()*8;
+        el.style.width = size + 'px';
+        el.style.height = (size*1.4) + 'px';
+        el.style.animationDelay = (Math.random()*0.6) + 's';
+        el.style.animationDuration = (1.4 + Math.random()*1.2) + 's';
+        el.style.setProperty('--drift', (Math.random()*240-120) + 'px');
+        document.body.appendChild(el);
+        setTimeout(function(){ el.remove(); }, 3400);
+      })();
+    }
+  }
+
+  // ===== 初始化 =====
+  (function init(){
+    var d = new Date();
+    document.getElementById('todayDate').textContent =
+      d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 · 周'+'日一二三四五六'[d.getDay()];
+    // ADHD 激励弹窗：绑定"收到"按钮手动关闭
+    var pc = document.getElementById('praiseClose');
+    if(pc) pc.addEventListener('click', closePraise);
+    renderAll();
+  })();
+})();
+</script>
+</body>
+</html>
