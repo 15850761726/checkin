@@ -10,7 +10,7 @@
   body{
     font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
     background:linear-gradient(160deg,#FFF8E1 0%,#FFE0B2 55%,#FFCC80 100%);
-    min-height:100vh;color:#4E342E;padding-bottom:60px;
+    min-height:100vh;color:#4E342E;padding-bottom:86px;
   }
   .wrap{max-width:520px;margin:0 auto;padding:16px}
 
@@ -68,6 +68,7 @@
     padding:8px 10px;border-radius:10px;border:2px solid transparent;
     font-size:13px;font-weight:700;cursor:pointer;transition:.15s;line-height:1.2;
   }
+  .btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
   .btn-done{background:#FFF3CD;color:#8A5A00}
   .btn-done.active{background:#FFB300;color:#fff;border-color:#FF8F00}
   .btn-nope{background:#ECEFF1;color:#607D8B}
@@ -138,9 +139,37 @@
   .praise-auto{margin-top:10px;font-size:12px;color:#A1887F}
   @keyframes fall{to{transform:translateY(110vh) rotate(720deg) translateX(var(--drift));opacity:.85}}
 
+  /* ===== 兑换记录 · 小太阳全景（灰=已兑换 / 亮=未兑换） ===== */
+  .sun-strip{margin:6px 0 12px;background:#FFFDF5;border:2px dashed #FFE0B2;border-radius:14px;padding:10px 12px}
+  .sun-strip-stars{display:flex;flex-wrap:wrap;gap:5px}
+  .sun-strip-stars .star{font-size:20px;line-height:1.2}
+  .sun-strip-stars .star.on{filter:none}
+  .sun-strip-stars .star.off{filter:grayscale(100%);opacity:.4}
+  .sun-strip-legend{display:flex;gap:14px;margin-top:8px;font-size:12px;color:#A1887F}
+  .sun-strip-legend .star{font-size:14px}
+
   .foot{margin-top:20px}
   .foot + .foot{margin-top:8px}
   .footnote{text-align:center;color:#A1887F;font-size:12px;margin-top:16px}
+
+  /* ===== 分页 Tab ===== */
+  .page{display:none}
+  .page.active{display:block}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;display:flex;background:#FFF8E1;border-top:2px solid #FFD54F;z-index:9990;box-shadow:0 -4px 14px rgba(255,152,0,.18);padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar .tab-item{flex:1;text-align:center;padding:11px 0;font-size:13px;font-weight:700;color:#A1887F;cursor:pointer;transition:.15s;user-select:none}
+  .tabbar .tab-item.active{color:#E65100;background:#FFF3CD}
+  .tabbar .tab-item:active{transform:scale(.95)}
+
+  /* ===== 页面内确认弹窗（替代 confirm，避免被浏览器/WebView 拦截导致“点击无效”） ===== */
+  .confirm-mask{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:11000;display:none;align-items:center;justify-content:center}
+  .confirm-card{width:80%;max-width:400px;background:#FFFDF5;border-radius:22px;padding:26px 22px 20px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3);animation:praisePop .3s ease}
+  .confirm-title{font-size:20px;font-weight:900;color:#C62828}
+  .confirm-text{font-size:15px;color:#5D4037;line-height:1.7;margin-top:10px;white-space:pre-line}
+  .confirm-btns{display:flex;gap:12px;margin-top:20px}
+  .confirm-btns button{flex:1;border:none;border-radius:24px;padding:11px 0;font-size:15px;font-weight:800;cursor:pointer}
+  .confirm-cancel{background:#ECEFF1;color:#607D8B}
+  .confirm-ok{background:#E53935;color:#fff}
+  .confirm-btns button:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -152,6 +181,8 @@
     <div class="date" id="todayDate"></div>
   </header>
 
+  <!-- ══════ 第 1 页：概览（小太阳钱包 + 今日小结） ══════ -->
+  <section class="page active" id="page-home">
   <!-- 小太阳钱包 -->
   <div class="card wallet">
     <div class="card-title">💰 小太阳钱包 <small>每 10 ☀️ = 1 元硬币</small></div>
@@ -165,28 +196,50 @@
     <button class="btn-exchange" id="btnExchange">🪙 兑换 1 元硬币（-10 ☀️）</button>
   </div>
 
+  <!-- 今日小结（首页总览当天进度） -->
+  <div class="card">
+    <div class="card-title">📊 今日小结</div>
+    <div class="summary" id="todaySummary"></div>
+  </div>
+  </section>
+
+  <!-- ══════ 第 2 页：打卡（今日打卡 + 打卡记录） ══════ -->
+  <section class="page" id="page-check">
   <!-- 今日打卡 -->
   <div class="card">
     <div class="card-title">📋 今日打卡 <small>点击任务旁的按钮打卡</small></div>
     <div id="taskList"></div>
-    <div class="summary" id="todaySummary"></div>
   </div>
 
-  <!-- 兑换记录 -->
+  <!-- 打卡记录 -->
   <div class="card">
-    <div class="card-title">🪙 兑换记录 <small>近半年</small></div>
-    <div id="exchangeList"></div>
-  </div>
-
-  <!-- 打卡日历 -->
-  <div class="card">
-    <div class="card-title">📅 打卡记录 <small>近半年</small></div>
+    <div class="card-title">📅 打卡记录 <small>近半年 · 含每日完成/未完成明细</small></div>
     <div id="historyList"></div>
   </div>
+  </section>
 
+  <!-- ══════ 第 3 页：兑换（兑换记录） ══════ -->
+  <section class="page" id="page-exchange">
+  <!-- 兑换记录 -->
+  <div class="card">
+    <div class="card-title">🪙 兑换记录 <small>近半年 · 10 ☀️ = 1 元硬币</small></div>
+    <!-- 小太阳全景：灰 = 已兑换成硬币 · 亮 = 钱包里未兑换 -->
+    <div class="sun-strip">
+      <div class="sun-strip-stars" id="sunStrip"></div>
+      <div class="sun-strip-legend">
+        <span class="star on">☀️</span> 未兑换（钱包里）
+        <span class="star off">☀️</span> 已兑换成硬币
+      </div>
+    </div>
+    <div id="exchangeList"></div>
+  </div>
+  </section>
+
+  <!-- ══════ 第 4 页：管理（计划参考 + 数据管理） ══════ -->
+  <section class="page" id="page-manage">
   <!-- 计划参考 -->
-  <details class="card">
-    <summary>📖 计划参考（排期 / 取舍优先级 / 表扬话术）</summary>
+  <div class="card">
+    <div class="card-title">📖 计划参考 <small>排期 / 取舍优先级 / 表扬话术</small></div>
     <div class="ref">
       <b>晚间学习计划表（18:40 开始）</b>
       <ol>
@@ -227,20 +280,29 @@
         </ul>
       </div>
     </div>
-  </details>
+  </div>
 
   <!-- 数据管理 -->
-  <details class="card">
-    <summary>⚙️ 数据管理</summary>
+  <div class="card">
+    <div class="card-title">⚙️ 数据管理</div>
     <div style="margin-top:10px">
       <button class="danger-btn" id="btnResetToday">重置今日打卡</button>
       <button class="danger-btn" id="btnClearAll">清空全部数据（含兑换记录）</button>
       <p style="font-size:12px;color:#A1887F;margin-top:6px">数据保存在本浏览器中，清除浏览器缓存前请谨慎操作。</p>
     </div>
-  </details>
+  </div>
+  </section>
 
   <div class="footnote">每天坚持，小太阳会越来越多哦 🌞</div>
 </div>
+
+<!-- 底部 Tab 导航：概览 / 打卡 / 记录 / 管理 -->
+<nav class="tabbar">
+  <div class="tab-item active" data-page="home">☀️ 概览</div>
+  <div class="tab-item" data-page="check">📋 打卡</div>
+  <div class="tab-item" data-page="exchange">🪙 兑换</div>
+  <div class="tab-item" data-page="manage">⚙️ 管理</div>
+</nav>
 
 <!-- ADHD 完成激励弹窗：10 秒后自动消失，可点"收到"手动关闭 -->
 <div class="praise-mask" id="praiseMask" style="display:none">
@@ -285,7 +347,7 @@
     }catch(e){ return defaultStore(); }
   }
   var store = load();
-  function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }catch(e){} }
+  function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(store)); return true; }catch(e){ return false; } }
 
   // ===== 工具 =====
   function pad(n){ return n < 10 ? '0'+n : ''+n; }
@@ -346,8 +408,8 @@
         + '<div class="task-adhd">🧠 '+t.adhd+'</div></div>'
         + badge
         + '<div class="actions">'
-        + '<button class="btn btn-done '+(st==='done'?'active':'')+'" data-act="done" data-key="'+t.key+'">✅ 完成</button>'
-        + '<button class="btn btn-nope '+(st==='notDone'?'active':'')+'" data-act="notDone" data-key="'+t.key+'">❌ 未完成</button>'
+        + '<button class="btn btn-done '+(st==='done'?'active':'')+'" data-act="done" data-key="'+t.key+'"'+(st==='none'?'':' disabled')+'>✅ 完成</button>'
+        + '<button class="btn btn-nope '+(st==='notDone'?'active':'')+'" data-act="notDone" data-key="'+t.key+'"'+(st==='none'?'':' disabled')+'>❌ 未完成</button>'
         + '</div></div>';
     }).join('');
   }
@@ -392,6 +454,16 @@
     btn.disabled = b < 10;
     btn.textContent = b >= 10 ? '🪙 兑换 1 元硬币（-10 ☀️，可兑 '+Math.floor(b/10)+' 枚）' : '🪙 还差 '+(10-Math.max(b,0))+' 个☀️才能兑换';
     balEl.classList.remove('pop'); void balEl.offsetWidth; balEl.classList.add('pop');
+  }
+
+  function renderSunStrip(){
+    var el = document.getElementById('sunStrip');
+    if(!el) return;
+    var t = totalSuns(), spent = store.coins * 10, html = '';
+    for(var i = 0; i < t; i++){
+      html += '<span class="star ' + (i < spent ? 'off' : 'on') + '">☀️</span>';
+    }
+    el.innerHTML = html || '<span class="empty">还没有小太阳，开始打卡吧～</span>';
   }
 
   function renderExchanges(){
@@ -459,6 +531,7 @@
     renderTasks();
     renderTodaySummary();
     renderWallet();
+    renderSunStrip();
     renderExchanges();
     renderHistory();
   }
@@ -470,11 +543,8 @@
     var key = btn.dataset.key, act = btn.dataset.act;
     var day = getDay(todayKey());
     var prev = day[key];             // 记录旧状态用于弹窗判断
-    if(prev === act){
-      delete day[key];               // 再次点击同一按钮 = 撤销
-    } else {
-      day[key] = act;                // 直接切换状态（完成↔未完成）
-    }
+    if(prev){ return; }              // 已打卡（完成/未完成）后当天锁定，不可更改；可到「管理」页重置今日
+    day[key] = act;
     save();
     renderAll();
     // 【ADHD 激励】点"完成"时弹出表扬弹窗（10秒后自动消失），并预告下一项，帮助抽离切换
@@ -486,39 +556,81 @@
     }
   });
 
+  // ===== 页面内确认弹窗（替代 window.confirm，避免被浏览器/WebView 拦截导致“点击无效”） =====
+  function myConfirm(title, text, okText, cb){
+    var mask = document.getElementById('confirmMask');
+    if(!mask){
+      mask = document.createElement('div');
+      mask.id = 'confirmMask';
+      mask.className = 'confirm-mask';
+      mask.innerHTML = '<div class="confirm-card">'
+        + '<div class="confirm-title"></div>'
+        + '<div class="confirm-text"></div>'
+        + '<div class="confirm-btns">'
+        + '<button class="confirm-cancel">再想想</button>'
+        + '<button class="confirm-ok">确定</button>'
+        + '</div></div>';
+      document.body.appendChild(mask);
+      // 取消按钮与遮罩点击：只绑定一次（与确认回调无关，不参与嵌套逻辑）
+      mask.querySelector('.confirm-cancel').addEventListener('click', function(){ mask.style.display = 'none'; });
+      mask.addEventListener('click', function(e){ if(e.target === mask) mask.style.display = 'none'; }); // 点遮罩空白处 = 取消
+    }
+    mask.querySelector('.confirm-title').textContent = title;
+    mask.querySelector('.confirm-text').textContent = text;
+    var okBtn = mask.querySelector('.confirm-ok');
+    if(okText) okBtn.textContent = okText;
+    // ⚠️ 关键：每次调用都用 onclick 覆盖重绑确认回调，
+    // 否则嵌套确认（如“狠心清空”）点确定时还会执行上一次的回调（又弹一次框），造成“点了没反应”
+    okBtn.onclick = function(){ mask.style.display = 'none'; cb(); };
+    mask.style.display = 'flex';
+  }
+
   document.getElementById('btnExchange').addEventListener('click', function(){
     var b = balance();
     if(b < 10) return;
     var n = Math.floor(b / 10);
     var msg = '确定用 10 个小太阳兑换 1 元硬币吗？\n兑换后剩余 '+(b-10)+' 个小太阳。';
     if(n > 1) msg = '当前可兑换 '+n+' 枚硬币，每次兑换 1 枚。\n' + msg;
-    if(!confirm(msg)) return;
-    store.coins += 1;
-    store.exchanges.unshift({time: nowStr(), date: todayKey(), suns: -10, coin: 1});
-    save();
-    renderAll();
-    confetti();
+    myConfirm('🪙 兑换硬币', msg, '确认兑换', function(){
+      store.coins += 1;
+      store.exchanges.unshift({time: nowStr(), date: todayKey(), suns: -10, coin: 1});
+      save();
+      renderAll();
+      confetti();
+    });
   });
 
   document.getElementById('btnResetToday').addEventListener('click', function(){
     var k = todayKey();
     var d = store.days[k];
     if(!d || !Object.keys(d).length){
-      alert('今日还没有打卡记录，无需重置。');
+      myConfirm('重置今日打卡', '今日还没有打卡记录，无需重置。', '好的', function(){});
       return;
     }
-    if(!confirm('确定重置今日 ['+dateLabel(k)+' '+weekLabel(k)+'] 的全部打卡吗？\n今日获得的小太阳也一并取消。')) return;
-    delete store.days[k];
-    save();
-    renderAll();
+    myConfirm('重置今日打卡', '确定重置今日 ['+dateLabel(k)+' '+weekLabel(k)+'] 的全部打卡吗？\n今日获得的小太阳也一并取消。', '重置', function(){
+      delete store.days[k];
+      save();
+      renderAll();
+    });
   });
 
   document.getElementById('btnClearAll').addEventListener('click', function(){
-    if(!confirm('确定清空全部数据吗？\n包括所有打卡记录、小太阳和兑换记录！')) return;
-    if(!confirm('再次确认：此操作不可恢复，真的要全部清空吗？')) return;
-    store = defaultStore();
-    save();
-    renderAll();
+    myConfirm('清空全部数据', '将删除所有打卡记录、小太阳和兑换记录！确定吗？', '继续', function(){
+      myConfirm('再次确认', '此操作不可恢复，真的要全部清空吗？', '狠心清空', function(){
+        var saved = false;
+        try{
+          store = defaultStore();
+          saved = save();
+          renderAll();
+        }catch(err){
+          myConfirm('清空失败', '清空过程出错：'+err.message, '好的', function(){});
+          return;
+        }
+        if(!saved){
+          myConfirm('⚠️ 未能写入浏览器', '本浏览器禁用了本地存储，本次清空只在当前浏览内生效，刷新后数据可能恢复。请更换浏览器或检查是否处于隐私模式。', '知道了', function(){});
+        }
+      });
+    });
   });
 
   // ===== ADHD 完成激励弹窗（10秒后自动消失） =====
@@ -578,6 +690,22 @@
   }
 
   // ===== 初始化 =====
+  // ===== 底部 Tab 分页切换 =====
+  function switchPage(name){
+    var pages = document.querySelectorAll('.page');
+    for(var i=0;i<pages.length;i++){ pages[i].className = pages[i].className.replace(/\s*active/g, ''); }
+    var el = document.getElementById('page-'+name);
+    if(el) el.className = el.className.replace(/\s*active/g, '') + ' active';
+    var tabs = document.querySelectorAll('.tab-item');
+    for(var j=0;j<tabs.length;j++){ tabs[j].className = tabs[j].className.replace(/\s*active/g, ''); }
+    var t = document.querySelector('.tab-item[data-page="'+name+'"]');
+    if(t) t.className = t.className.replace(/\s*active/g, '') + ' active';
+  }
+  document.querySelector('.tabbar').addEventListener('click', function(e){
+    var item = e.target.closest('.tab-item');
+    if(item) switchPage(item.dataset.page);
+  });
+
   (function init(){
     var d = new Date();
     document.getElementById('todayDate').textContent =
